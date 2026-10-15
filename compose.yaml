@@ -1,0 +1,15 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: school-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: school_admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Missing password}
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - school_mongodb_data:/data/db
+
+volumes:
+  school_mongodb_data:
