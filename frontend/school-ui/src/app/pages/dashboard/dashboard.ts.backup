@@ -1,0 +1,87 @@
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { StudentService } from '../../services/student.service';
+import { TeacherService } from '../../services/teacher.service';
+import { Student } from '../../models/student';
+import { DataRefreshService } from '../../services/data-refresh.service';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [RouterLink],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
+})
+export class Dashboard implements OnInit, OnDestroy {
+  private studentService = inject(StudentService);
+  private teacherService = inject(TeacherService);
+  private dataRefreshService = inject(DataRefreshService);
+  private destroy$ = new Subject<void>();
+
+  recentStudents: Student[] = [];
+
+  totalStudents = 0;
+  totalTeachers = 0;
+
+  loading = true;
+  errorMessage = '';
+
+  ngOnInit(): void {
+    this.dataRefreshService.dataChanged$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.loadDashboard();
+    });
+
+    this.loadDashboard();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadDashboard(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    let studentsLoaded = false;
+    let teachersLoaded = false;
+
+    const finishLoading = () => {
+      if (studentsLoaded && teachersLoaded) {
+        this.loading = false;
+      }
+    };
+
+    this.studentService.getStudents().subscribe({
+      next: (students) => {
+        this.totalStudents = students.length;
+
+        this.recentStudents = [...students].reverse().slice(0, 5);
+
+        studentsLoaded = true;
+        finishLoading();
+      },
+      error: (error) => {
+        console.error('Could not load students:', error);
+        this.errorMessage = 'Could not load all dashboard information.';
+        studentsLoaded = true;
+        finishLoading();
+      },
+    });
+
+    this.teacherService.getTeachers().subscribe({
+      next: (teachers) => {
+        this.totalTeachers = teachers.length;
+        teachersLoaded = true;
+        finishLoading();
+      },
+      error: (error) => {
+        console.error('Could not load teachers:', error);
+        this.errorMessage = 'Could not load all dashboard information.';
+        teachersLoaded = true;
+        finishLoading();
+      },
+    });
+  }
+}

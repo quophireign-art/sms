@@ -1,0 +1,211 @@
+<div class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Teachers</h1>
+      <p class="mt-1 text-sm text-gray-500">Manage your school's teaching staff.</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="openCreateForm()"
+      class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+    >
+      + Add Teacher
+    </button>
+  </div>
+
+  @if (successMessage) {
+    <div class="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+      {{ successMessage }}
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (showForm) {
+    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <h2 class="mb-4 text-lg font-semibold text-gray-900">
+        {{ editingId ? 'Edit Teacher' : 'Register Teacher' }}
+      </h2>
+
+      <form
+        #teacherForm="ngForm"
+        (ngSubmit)="saveTeacher()"
+        class="grid grid-cols-1 gap-4 md:grid-cols-2"
+      >
+        <div>
+          <label for="fullname" class="mb-1 block text-sm font-medium text-gray-700">
+            Full name
+          </label>
+          <input
+            type="text"
+            name="fullname"
+            [(ngModel)]="form.fullname"
+            required
+            #fullnameInput="ngModel"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2"
+          />
+
+          @if (fullnameInput.invalid && fullnameInput.touched) {
+            <p class="text-sm text-red-600">Teacher name is required.</p>
+          }
+        </div>
+
+        <div>
+          <label for="age" class="mb-1 block text-sm font-medium text-gray-700"> Age </label>
+          <input
+            type="number"
+            name="age"
+            [(ngModel)]="form.age"
+            required
+            min="18"
+            #ageInput="ngModel"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2"
+          />
+
+          @if (ageInput.invalid && ageInput.touched) {
+            <p class="text-sm text-red-600">Teacher must be at least 18 years old.</p>
+          }
+        </div>
+
+        <div>
+          <label for="telephone" class="mb-1 block text-sm font-medium text-gray-700">
+            Telephone
+          </label>
+          <input
+            type="tel"
+            name="telephone"
+            [(ngModel)]="form.telephone"
+            required
+            #telephoneInput="ngModel"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2"
+          />
+
+          @if (telephoneInput.invalid && telephoneInput.touched) {
+            <p class="text-sm text-red-600">Telephone number is required.</p>
+          }
+        </div>
+
+        <div>
+          <label for="email" class="mb-1 block text-sm font-medium text-gray-700"> Email </label>
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="form.email"
+            required
+            email
+            #emailInput="ngModel"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2"
+          />
+
+          @if (emailInput.invalid && emailInput.touched) {
+            <p class="text-sm text-red-600">Enter a valid email address.</p>
+          }
+        </div>
+
+        <div class="flex gap-3 md:col-span-2">
+          <button
+            type="submit"
+            [disabled]="teacherForm.invalid || isSaving"
+            class="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {{ isSaving ? 'Saving...' : editingId ? 'Save Changes' : 'Register Teacher' }}
+          </button>
+
+          <button
+            type="button"
+            (click)="cancelForm()"
+            class="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!--Search Teachers-->
+
+  <div class="mb-4">
+    <label for="teacherSearch" class="mb-2 block text-sm font-medium text-gray-700">
+      Search teachers
+    </label>
+
+    <input
+      id="teacherSearch"
+      name="teacherSearch"
+      type="search"
+      [(ngModel)]="searchTerm"
+      placeholder="Search by name, telephone, or email..."
+      class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 md:max-w-md"
+    />
+
+    <p class="mt-2 text-sm text-gray-500">
+      Showing {{ filteredTeachers.length }} of {{ teachers.length }} teachers
+    </p>
+  </div>
+
+  <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="px-5 py-3 font-semibold">Full name</th>
+            <th class="px-5 py-3 font-semibold">Age</th>
+            <th class="px-5 py-3 font-semibold">Telephone</th>
+            <th class="px-5 py-3 font-semibold">Email</th>
+            <th class="px-5 py-3 font-semibold">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-100">
+          @for (teacher of filteredTeachers; track teacher.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-5 py-4 font-medium text-gray-900">
+                {{ teacher.fullname }}
+              </td>
+              <td class="px-5 py-4 text-gray-600">
+                {{ teacher.age }}
+              </td>
+              <td class="px-5 py-4 text-gray-600">
+                {{ teacher.telephone }}
+              </td>
+              <td class="px-5 py-4 text-gray-600">
+                {{ teacher.email }}
+              </td>
+              <td class="px-5 py-4">
+                <div class="flex gap-3">
+                  <button
+                    type="button"
+                    (click)="editTeacher(teacher)"
+                    class="font-medium text-blue-600 hover:text-blue-800"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="deleteTeacher(teacher)"
+                    class="font-medium text-red-600 hover:text-red-800"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="px-5 py-10 text-center text-gray-500">
+                No teachers found. Click "Add Teacher" to register one.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
