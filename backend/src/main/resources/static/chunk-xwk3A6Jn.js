@@ -1,0 +1,1 @@
+import{J as k,S as K}from"./main-5YCQIPM3.js";var o=class a{dataChangedSource=new K;dataChanged$=this.dataChangedSource.asObservable();notifyDataChanged(){this.dataChangedSource.next()}static ɵfac=function(n){return new(n||a)};static ɵprov=k({token:a,factory:a.ɵfac,providedIn:`root`})};export{o as t};

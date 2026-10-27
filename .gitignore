@@ -1,5 +1,34 @@
+
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+
+# Java / Maven
 target/
+*.class
+*.jar
+*.war
+
+# Angular / Node.js
 node_modules/
 dist/
 .angular/
+.npm/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local backups (contain potentially sensitive school data)
+backups/
+

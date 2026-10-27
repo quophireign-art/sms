@@ -1,3 +1,4 @@
+
 services:
   mongodb:
     image: mongo:7.0
@@ -10,6 +11,29 @@ services:
       - "127.0.0.1:27018:27017"
     volumes:
       - school_mongodb_data:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'mongosh --quiet --username "$$MONGO_INITDB_ROOT_USERNAME" --password "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "quit(db.adminCommand({ping: 1}).ok ? 0 : 1)"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    image: school-management:1.0
+    container_name: school-management-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: "mongodb://school_app:${MONGO_APP_PASSWORD:?Missing app password}@mongodb:27017/school_db?authSource=school_db"
+      JWT_SECRET: ${JWT_SECRET:?Missing JWT secret}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?Missing admin username}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Missing admin password}
+    ports:
+      - "127.0.0.1:8080:8080"
 
 volumes:
   school_mongodb_data:
